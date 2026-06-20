@@ -552,7 +552,7 @@ if needs_user and user_id_input:
 
     with st.expander(f"User {user_id_input}'s top-rated movies ({len(rated_by_user)} total in filtered set)", expanded=False):
         top_rated = rated_by_user.head(10)[["title", "genres", "rating"]]
-        st.dataframe(top_rated, width=None, hide_index=True)
+        st.dataframe(top_rated, hide_index=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 run_btn = st.button("Get Recommendations", use_container_width=False, type="primary")
