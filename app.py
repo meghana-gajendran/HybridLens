@@ -332,9 +332,20 @@ def content_based(movie_title: str, movies: pd.DataFrame,
     """
     Content-based: find movies with similar genre profiles.
     """
-    matches = movies[movies["title"].str.lower().str.contains(movie_title.lower(), na=False)]
+    import re
+    clean_title = movie_title.strip()
+
+    # Reject if fewer than 2 alphanumeric characters
+    if sum(c.isalnum() for c in clean_title) < 2:
+        return [], "Please enter a valid movie title (at least 2 letters or numbers)."
+
+    # Reject if contains special characters beyond letters, numbers, spaces, ' - : .
+    if re.search(r"[^a-zA-Z0-9\s'\-:\.]", clean_title):
+        return [], f"'{clean_title}' doesn't look like a movie title. Try something like 'Toy Story', 'Matrix', or 'Pulp Fiction'."
+
+    matches = movies[movies["title"].str.lower().str.contains(clean_title.lower(), na=False, regex=False)]
     if matches.empty:
-        return [], f"No movie matching '{movie_title}' found."
+        return [], f"No movie matching '{clean_title}' found. Try 'Toy Story', 'Matrix', or 'Pulp Fiction'."
 
     # Pick the first match (most likely the intended one)
     seed = matches.iloc[0]
@@ -574,7 +585,7 @@ if run_btn:
 
             # Check if seed movie exists before running hybrid
             seed_check = movies[movies["title"].str.lower().str.contains(
-                movie_input.strip().lower(), na=False)]
+                movie_input.strip().lower(), na=False, regex=False)]
             if seed_check.empty:
                 warning_msg = (
                     f"Seed movie '{movie_input.strip()}' not found in the dataset — "
