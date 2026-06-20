@@ -176,10 +176,10 @@ def load_data():
 
 
 @st.cache_data(show_spinner=False)
-def build_utility_matrix(ratings: pd.DataFrame, min_user_ratings=20, min_movie_ratings=20):
+def build_utility_matrix(ratings: pd.DataFrame, min_user_ratings=100, min_movie_ratings=100):
     """
-    Filter to active users / popular movies and build the utility matrix.
-    Lower thresholds than the notebook (20 vs 50) so more movies appear.
+    Filter aggressively to keep matrix small for Streamlit Cloud (1GB RAM).
+    Thresholds of 100 keep the utility matrix under ~200x300.
     """
     rc = ratings["movieId"].value_counts()
     popular = rc[rc >= min_movie_ratings].index
@@ -197,28 +197,27 @@ def build_utility_matrix(ratings: pd.DataFrame, min_user_ratings=20, min_movie_r
 def build_user_similarity(_utility: pd.DataFrame):
     """Mean-centred cosine similarity → equivalent to Pearson correlation."""
     means = _utility.mean(axis=1)
-    norm_u = _utility.subtract(means, axis=0).fillna(0)
+    norm_u = _utility.subtract(means, axis=0).fillna(0).astype("float32")
     sim = cosine_similarity(norm_u)
-    return pd.DataFrame(sim, index=_utility.index, columns=_utility.index)
+    return pd.DataFrame(sim, index=_utility.index, columns=_utility.index, dtype="float32")
 
 
 @st.cache_data(show_spinner=False)
 def build_item_similarity(_utility: pd.DataFrame):
     """Item-item cosine similarity on the transposed utility matrix."""
-    item_mat = _utility.T.fillna(0)
+    item_mat = _utility.T.fillna(0).astype("float32")
     sim = cosine_similarity(item_mat)
-    return pd.DataFrame(sim, index=_utility.columns, columns=_utility.columns)
+    return pd.DataFrame(sim, index=_utility.columns, columns=_utility.columns, dtype="float32")
 
 
 @st.cache_data(show_spinner=False)
 def build_content_matrix(_movies: pd.DataFrame):
     """TF-IDF on genre strings for content-based similarity."""
-    # Replace pipe-separated genres with spaces so TF-IDF treats each genre as a token
     genre_text = _movies["genres"].str.replace("|", " ", regex=False).fillna("")
     tfidf = TfidfVectorizer()
     tfidf_matrix = tfidf.fit_transform(genre_text)
-    sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
-    return pd.DataFrame(sim, index=_movies["movieId"].values, columns=_movies["movieId"].values)
+    sim = cosine_similarity(tfidf_matrix, tfidf_matrix).astype("float32")
+    return pd.DataFrame(sim, index=_movies["movieId"].values, columns=_movies["movieId"].values, dtype="float32")
 
 
 # ─────────────────────────────────────────────
@@ -552,10 +551,10 @@ if needs_user and user_id_input:
 
     with st.expander(f"User {user_id_input}'s top-rated movies ({len(rated_by_user)} total in filtered set)", expanded=False):
         top_rated = rated_by_user.head(10)[["title", "genres", "rating"]]
-        st.dataframe(top_rated, use_container_width=True, hide_index=True)
+        st.dataframe(top_rated, hide_index=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
-run_btn = st.button("Get Recommendations", use_container_width=True, type="primary")
+run_btn = st.button("Get Recommendations", use_container_width=False, type="primary")
 
 st.markdown("---")
 
