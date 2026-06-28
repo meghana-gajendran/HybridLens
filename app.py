@@ -1,5 +1,5 @@
 """
-CineMatch — Hybrid Movie Recommender
+HybridLens — Hybrid Movie Recommender
 Combines collaborative filtering (user-based + item-based) with content-based
 filtering on the MovieLens ml-latest-small dataset.
 """
@@ -18,7 +18,7 @@ import zipfile
 # Page config
 # ─────────────────────────────────────────────
 st.set_page_config(
-    page_title="CineMatch",
+    page_title="HybridLens",
     page_icon="🎬",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -526,7 +526,7 @@ with st.sidebar:
 # ─────────────────────────────────────────────
 # Main content
 # ─────────────────────────────────────────────
-st.markdown('<div class="hero-title">CineMatch</div>', unsafe_allow_html=True)
+st.markdown('<div class="hero-title">HybridLens</div>', unsafe_allow_html=True)
 st.markdown('<div class="hero-sub">Hybrid Movie Recommendations · MovieLens ml-latest-small</div>', unsafe_allow_html=True)
 
 col_l, col_r = st.columns([1, 1], gap="large")
